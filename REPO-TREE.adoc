@@ -1,0 +1,21 @@
+befunge-ssg/
+  deno.json
+  befunge-ssg.json
+  cli.mjs
+  src/
+    ssg.mjs
+    serve.mjs
+    dev.mjs
+  assets/
+    site.css
+  site/
+    programs/
+      hello.bf
+  rs/
+    rescript.json
+    src/
+      Adapter.res
+      Render.res
+      Html.res
+      Slug.res
+  dist/               (generated)
