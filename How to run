@@ -1,0 +1,40 @@
+How to run
+
+1) Build the ReScript adapter once
+
+From befunge-ssg/rs:
+
+cd rs
+rescript build
+
+
+That produces rs/lib/es6/src/*.js which Deno imports.
+
+If you don’t have rescript installed yet: install it however you prefer (nix/system package/etc.). No TypeScript is involved.
+
+2) Build and serve the site with Deno
+
+From repo root:
+
+deno task build
+deno task serve
+# open http://127.0.0.1:8000
+
+3) Dev mode (watch + rebuild + serve)
+deno task dev
+
+Notes (so this stays “serious” and maintainable)
+
+ReScript is pure rendering + parsing (no Deno.* calls).
+
+Deno side is I/O + server (simple, auditable).
+
+No scraping, no execution, no browser automation: this is a clean SSG foundation.
+
+If you want, next step I can add (still no TS):
+
+.meta.json sidecars (extra tags/summary),
+
+coordinate rulers / SVG rendering of the grid,
+
+optional “run-at-build” using a tiny Befunge interpreter (with strict step/output limits).
