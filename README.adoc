@@ -1,54 +1,42 @@
 = befunge-ssg
-:toc:
-:toclevels: 3
-:icons: font
+:toc: auto
+:toclevels: 2
 
-A static-site generator for Befunge programs (and Befunge-adjacent artifacts).
+image:https://img.shields.io/badge/RSR-compliant-gold[RSR Compliant,link=https://github.com/hyperpolymath/rhodium-standard-repositories]
+image:https://img.shields.io/badge/poly--ssg-satellite-blue[poly-ssg,link=https://github.com/hyperpolymath/poly-ssg]
+image:https://img.shields.io/badge/license-AGPL--3.0-green[License]
+image:https://img.shields.io/badge/status-experimental-orange[Experimental]
 
-`befunge-ssg` turns a folder of `.bf` programs into a static website:
-* renders 2D code grids with stable coordinates,
-* extracts literate documentation from conventions,
-* optionally executes programs at build-time to capture sample output,
-* publishes a searchable gallery (index, tags, metadata),
-* stays lightweight and boring to deploy (just static HTML/CSS/JS).
+**Static site generator for Befunge programs.**
 
-== What this is good for
+Turns a folder of `.bf` programs into a beautiful static website with 2D grid rendering.
 
-* *Esolang galleries* – host a collection of Befunge snippets with readable grids and metadata.
-* *Teaching* – show instruction pointer traces, stack snapshots, and I/O examples (optional).
-* *Literate Befunge* – keep documentation close to source, but publish nicely.
-* *Code archaeology* – preserve artifacts in a form that remains readable years later.
-* *“Museum mode”* – static pages that work without a server, ideal for GitHub Pages.
+== Who Is This For?
 
-== What this is NOT
+* **Esolang enthusiasts** displaying Befunge program collections
+* **Educators** teaching 2D programming concepts
+* **Code archaeologists** preserving vintage programs
+* **Esoteric language researchers** documenting implementations
 
-* Not a general-purpose SSG.
-* Not a CMS.
-* Not a crypto tool. If you are trying to crack Ed448 in Befunge, congratulations on your optimism.
+== Why befunge-ssg?
 
-== Design constraints
+=== 2D Grid Rendering
 
-* *Static output only*: build produces a folder you can deploy anywhere.
-* *No invisible network behaviour*: building does not phone home.
-* *Deterministic builds (goal)*: same inputs → same outputs (aside from timestamps unless disabled).
-* *Separable concerns*: parsing, rendering, execution, and site theming are modular.
+Befunge programs are displayed as proper 2D grids with coordinates, not just text files.
 
-== Content model
+[source]
+----
+  0123456789
+0 >v
+1 v,<
+2 >^
+----
 
-=== Inputs
+=== Literate Documentation
 
-* `site/programs/*.bf` — Befunge source programs
-* `site/programs/*.meta.json` — optional metadata sidecar (title, tags, description)
-* `site/pages/*.adoc` — optional extra pages (About, FAQ, etc.)
-* `site/theme/` — optional theme assets (CSS, favicon, logo)
+Extract documentation from Befunge files using conventions:
 
-=== Documentation conventions
-
-Befunge has no standard comment syntax, so this project uses conventions that are tooling-only.
-
-*Leading doc block* (recommended):
-Lines at the *start* of a `.bf` file that begin with `;` are treated as documentation:
-
+[source,befunge]
 ----
 ; Title: Hello Pointer
 ; Tags: demo, intro
@@ -58,57 +46,75 @@ v,<
 >^
 ----
 
-Everything after the doc block is treated as Befunge code.
+=== Static Output
 
-== Output
+Build produces pure HTML/CSS/JS. Deploy anywhere - GitHub Pages, Netlify, or your own server.
 
-By default:
+=== Optional Execution
 
-* `dist/index.html` — gallery index
-* `dist/programs/<slug>/index.html` — one page per program
-* `dist/assets/…` — CSS/JS/fonts
+Capture program output at build time with strict safety limits (step count, output size, no I/O).
 
-Each program page includes:
-* the rendered 2D grid (with coordinates),
-* extracted docs + metadata,
-* (optional) captured output and build-time execution notes,
-* (optional) trace view.
+== Quick Start
 
-== Quick start
-
-=== Requirements
-
-* https://deno.com/[Deno] (recommended runtime)
-* Optional: `just` for a convenient command wrapper
-
-=== Run
-
-[source,sh]
+[source,bash]
 ----
-# build the site from ./site into ./dist
+# Build ReScript adapter
+cd rs && rescript build && cd ..
+
+# Build the site
 deno task build
 
-# serve locally for preview
+# Serve locally
 deno task serve
+# Open http://127.0.0.1:8000
 
-# watch for changes during authoring
+# Development mode (watch + rebuild)
 deno task dev
 ----
 
-If you use `just`:
+== Architecture
 
-[source,sh]
 ----
-just build
-just serve
-just dev
+befunge-ssg/
+├── cli.mjs              (CLI entry point)
+├── deno.json            (Deno config + tasks)
+├── befunge-ssg.json     (Site config)
+├── src/                 (Deno host code)
+│   ├── ssg.mjs          (Build logic)
+│   ├── serve.mjs        (Dev server)
+│   ├── dev.mjs          (Watch mode)
+│   └── util.mjs         (Utilities)
+├── rs/                  (ReScript adapter)
+│   ├── rescript.json
+│   └── src/
+│       ├── Adapter.res  (Main adapter)
+│       ├── Render.res   (HTML generation)
+│       ├── Html.res     (HTML utilities)
+│       └── Slug.res     (URL slugs)
+├── assets/
+│   └── site.css         (Theme styles)
+├── site/
+│   └── programs/        (Befunge programs)
+│       └── hello.bf
+└── dist/                (Generated output)
 ----
+
+== Content Model
+
+=== Inputs
+
+* `site/programs/*.bf` - Befunge source programs
+* `site/programs/*.meta.json` - Optional metadata (title, tags)
+* `site/pages/*.adoc` - Extra pages (About, FAQ)
+* `site/theme/` - Custom theme assets
+
+=== Outputs
+
+* `dist/index.html` - Gallery index
+* `dist/programs/<slug>/index.html` - Program pages
+* `dist/assets/` - CSS/JS
 
 == Configuration
-
-Configuration is read from `befunge-ssg.json` (default) in the repo root.
-
-Example:
 
 [source,json]
 ----
@@ -125,254 +131,19 @@ Example:
 }
 ----
 
-== Safety / execution mode
+== About Befunge-93
 
-Build-time execution is optional and off by default.
+https://esolangs.org/wiki/Befunge[Befunge-93] is an esoteric programming language created by Chris Pressey in 1993:
 
-If enabled, the interpreter runs with:
-* step limit,
-* output limit,
-* no filesystem access,
-* no network access.
+* **2D execution**: Program counter moves on an 80x25 grid
+* **Stack-based**: All operations use a LIFO stack
+* **Self-modifying**: Programs can modify their own code
+* **Direction commands**: `<>^v` change execution direction
 
-This is intended for *demo programs you trust*.
+== Part of poly-ssg
 
-== Roadmap
-
-=== MUST
-* Parse `.bf` grids and render them faithfully.
-* Doc extraction + metadata + gallery index.
-* Deterministic output paths (stable slugs).
-
-=== SHOULD
-* Optional build-time execution capture (safe limits).
-* Trace viewer for instruction pointer + stack snapshots.
-* Theme hooks (CSS variables, templates).
-
-=== COULD
-* Import/export formats (e.g., render to SVG, PDF-friendly layouts).
-* Multi-language bundles (Befunge-93, Funge-98 variants).
-* “Museum mode” offline search index.
+befunge-ssg is part of the https://github.com/hyperpolymath/poly-ssg[poly-ssg] family, unified through https://github.com/hyperpolymath/poly-ssg-mcp[MCP integration].
 
 == License
 
-Choose according to your repo policy (e.g., MPL-2.0).
-= RSR Template Repository
-
-image:[AGPL-3.0,link="https://www.gnu.org/licenses/agpl-3.0"] image:[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
-:toc:
-:sectnums:
-
-// Badges
-image:https://img.shields.io/badge/RSR-Infrastructure-cd7f32[RSR Infrastructure]
-image:https://img.shields.io/badge/Phase-Maintenance-brightgreen[Phase]
-image:https://img.shields.io/badge/License-AGPL%20OR%20Palimpsest-blue[License]
-image:https://img.shields.io/badge/Guix-Primary-purple?logo=gnu[Guix]
-
-== Overview
-
-**The canonical template for RSR (Rhodium Standard Repository) projects.**
-
-This repository provides the standardized structure, configuration, and tooling for all 139 repos in the hyperpolymath ecosystem. Use it to:
-
-* Bootstrap new projects with RSR compliance
-* Reference the standard directory structure
-* Copy configuration templates (justfile, STATE.scm, etc.)
-
-== Quick Start
-
-[source,bash]
-----
-# Clone the template
-git clone https://github.com/hyperpolymath/RSR-template-repo my-project
-cd my-project
-
-# Remove template git history
-rm -rf .git
-git init
-
-# Customize
-sed -i 's/RSR-template-repo/my-project/g' justfile guix.scm README.adoc
-
-# Enter development environment
-guix shell -D -f guix.scm
-
-# Validate compliance
-just validate-rsr
-----
-
-== What's Included
-
-[cols="1,3"]
-|===
-|File/Directory |Purpose
-
-|`.editorconfig`
-|Editor configuration (indent, charset)
-
-|`.gitignore`
-|Standard ignore patterns
-
-|`.guix-channel`
-|Guix channel definition
-
-|`.well-known/`
-|RFC-compliant metadata (security.txt, ai.txt, humans.txt)
-
-|`docs/`
-|Documentation directory
-
-|`guix.scm`
-|Guix package definition
-
-|`justfile`
-|Task runner with 50+ recipes
-
-|`LICENSE.txt`
-|AGPL + Palimpsest dual license
-
-|`README.adoc`
-|This file
-
-|`RSR_COMPLIANCE.adoc`
-|Compliance tracking
-
-|`STATE.scm`
-|Project state checkpoint
-|===
-
-== Justfile Features
-
-The template justfile provides:
-
-* **~10 billion recipe combinations** via matrix recipes
-* **Cookbook generation**: `just cookbook` → `docs/just-cookbook.adoc`
-* **Man page generation**: `just man` → `docs/man/project.1`
-* **RSR validation**: `just validate-rsr`
-* **STATE.scm management**: `just state-touch`, `just state-phase`
-* **Container support**: `just container-build`, `just container-push`
-* **CI matrix**: `just ci-matrix [stage] [depth]`
-
-=== Key Recipes
-
-[source,bash]
-----
-just                # Show all recipes
-just help <recipe>  # Detailed help
-just info           # Project info
-just combinations   # Show matrix options
-
-just build          # Build (debug)
-just test           # Run tests
-just quality        # Format + lint + test
-just ci             # Full CI pipeline
-
-just validate       # RSR + STATE validation
-just docs           # Generate all docs
-just cookbook       # Generate justfile docs
-
-just guix-shell     # Guix dev environment
-just container-build # Build container
-----
-
-== Directory Structure
-
-[source]
-----
-project/
-├── .editorconfig          # Editor settings
-├── .gitignore             # Git ignore
-├── .guix-channel          # Guix channel
-├── .well-known/           # RFC metadata
-│   ├── ai.txt
-│   ├── humans.txt
-│   └── security.txt
-├── config/                # Nickel configs (optional)
-├── docs/                  # Documentation
-│   ├── generated/
-│   ├── man/
-│   └── just-cookbook.adoc
-├── guix.scm               # Guix package
-├── justfile               # Task runner
-├── LICENSE.txt            # Dual license
-├── README.adoc            # Overview
-├── RSR_COMPLIANCE.adoc    # Compliance
-├── src/                   # Source code
-├── STATE.scm              # State checkpoint
-└── tests/                 # Tests
-----
-
-== RSR Compliance
-
-=== Language Tiers
-
-* **Tier 1** (Gold): Rust, Elixir, Zig, Ada, Haskell, ReScript
-* **Tier 2** (Silver): Nickel, Racket, Guile Scheme, Nix
-* **Infrastructure**: Guix channels, derivations
-
-=== Required Files
-
-* `.editorconfig`
-* `.gitignore`
-* `justfile`
-* `README.adoc`
-* `RSR_COMPLIANCE.adoc`
-* `LICENSE.txt` (AGPL + Palimpsest)
-* `.well-known/security.txt`
-* `.well-known/ai.txt`
-* `.well-known/humans.txt`
-* `guix.scm` OR `flake.nix`
-
-=== Prohibited
-
-* Python outside `salt/` directory
-* TypeScript/JavaScript (use ReScript)
-* CUE (use Guile/Nickel)
-* `Dockerfile` (use `Containerfile`)
-
-== STATE.scm
-
-The STATE.scm file tracks project state:
-
-[source,scheme]
-----
-(define state
-  `((metadata
-     (project . "my-project")
-     (updated . "2025-12-10"))
-    (position
-     (phase . implementation)  ; design|implementation|testing|maintenance|archived
-     (maturity . beta))        ; experimental|alpha|beta|production|lts
-    (ecosystem
-     (part-of . ("RSR Framework"))
-     (depends-on . ()))))
-----
-
-== Badge Schema
-
-Generate badges from STATE.scm:
-
-[source,bash]
-----
-just badges standard
-----
-
-See `docs/BADGE_SCHEMA.adoc` for the full badge taxonomy.
-
-== Ecosystem Integration
-
-This template is part of:
-
-* **STATE.scm Ecosystem**: Conversation checkpoints
-* **RSR Framework**: Repository standards
-* **Consent-Aware-HTTP**: .well-known compliance
-
-== License
-
-SPDX-License-Identifier: `AGPL-3.0-or-later OR LicenseRef-Palimpsest-0.5`
-
-== Links
-
-* https://github.com/hyperpolymath/elegant-STATE[elegant-STATE] - STATE.scm tooling
-* https://github.com/hyperpolymath/conative-gating[conative-gating] - Policy enforcement
-* https://rhodium.sh[Rhodium Standard] - RSR documentation
+AGPL-3.0-or-later
