@@ -1,6 +1,165 @@
+= befunge-ssg
+:toc:
+:toclevels: 3
+:icons: font
+
+A static-site generator for Befunge programs (and Befunge-adjacent artifacts).
+
+`befunge-ssg` turns a folder of `.bf` programs into a static website:
+* renders 2D code grids with stable coordinates,
+* extracts literate documentation from conventions,
+* optionally executes programs at build-time to capture sample output,
+* publishes a searchable gallery (index, tags, metadata),
+* stays lightweight and boring to deploy (just static HTML/CSS/JS).
+
+== What this is good for
+
+* *Esolang galleries* – host a collection of Befunge snippets with readable grids and metadata.
+* *Teaching* – show instruction pointer traces, stack snapshots, and I/O examples (optional).
+* *Literate Befunge* – keep documentation close to source, but publish nicely.
+* *Code archaeology* – preserve artifacts in a form that remains readable years later.
+* *“Museum mode”* – static pages that work without a server, ideal for GitHub Pages.
+
+== What this is NOT
+
+* Not a general-purpose SSG.
+* Not a CMS.
+* Not a crypto tool. If you are trying to crack Ed448 in Befunge, congratulations on your optimism.
+
+== Design constraints
+
+* *Static output only*: build produces a folder you can deploy anywhere.
+* *No invisible network behaviour*: building does not phone home.
+* *Deterministic builds (goal)*: same inputs → same outputs (aside from timestamps unless disabled).
+* *Separable concerns*: parsing, rendering, execution, and site theming are modular.
+
+== Content model
+
+=== Inputs
+
+* `site/programs/*.bf` — Befunge source programs
+* `site/programs/*.meta.json` — optional metadata sidecar (title, tags, description)
+* `site/pages/*.adoc` — optional extra pages (About, FAQ, etc.)
+* `site/theme/` — optional theme assets (CSS, favicon, logo)
+
+=== Documentation conventions
+
+Befunge has no standard comment syntax, so this project uses conventions that are tooling-only.
+
+*Leading doc block* (recommended):
+Lines at the *start* of a `.bf` file that begin with `;` are treated as documentation:
+
+----
+; Title: Hello Pointer
+; Tags: demo, intro
+; Summary: Minimal IP loop with output.
+>v
+v,<
+>^
+----
+
+Everything after the doc block is treated as Befunge code.
+
+== Output
+
+By default:
+
+* `dist/index.html` — gallery index
+* `dist/programs/<slug>/index.html` — one page per program
+* `dist/assets/…` — CSS/JS/fonts
+
+Each program page includes:
+* the rendered 2D grid (with coordinates),
+* extracted docs + metadata,
+* (optional) captured output and build-time execution notes,
+* (optional) trace view.
+
+== Quick start
+
+=== Requirements
+
+* https://deno.com/[Deno] (recommended runtime)
+* Optional: `just` for a convenient command wrapper
+
+=== Run
+
+[source,sh]
+----
+# build the site from ./site into ./dist
+deno task build
+
+# serve locally for preview
+deno task serve
+
+# watch for changes during authoring
+deno task dev
+----
+
+If you use `just`:
+
+[source,sh]
+----
+just build
+just serve
+just dev
+----
+
+== Configuration
+
+Configuration is read from `befunge-ssg.json` (default) in the repo root.
+
+Example:
+
+[source,json]
+----
+{
+  "siteTitle": "My Befunge Gallery",
+  "baseUrl": "/",
+  "inputDir": "site",
+  "outputDir": "dist",
+  "execute": {
+    "enabled": false,
+    "maxSteps": 250000,
+    "maxOutputBytes": 8192
+  }
+}
+----
+
+== Safety / execution mode
+
+Build-time execution is optional and off by default.
+
+If enabled, the interpreter runs with:
+* step limit,
+* output limit,
+* no filesystem access,
+* no network access.
+
+This is intended for *demo programs you trust*.
+
+== Roadmap
+
+=== MUST
+* Parse `.bf` grids and render them faithfully.
+* Doc extraction + metadata + gallery index.
+* Deterministic output paths (stable slugs).
+
+=== SHOULD
+* Optional build-time execution capture (safe limits).
+* Trace viewer for instruction pointer + stack snapshots.
+* Theme hooks (CSS variables, templates).
+
+=== COULD
+* Import/export formats (e.g., render to SVG, PDF-friendly layouts).
+* Multi-language bundles (Befunge-93, Funge-98 variants).
+* “Museum mode” offline search index.
+
+== License
+
+Choose according to your repo policy (e.g., MPL-2.0).
 = RSR Template Repository
 
-image:https://img.shields.io/badge/license-AGPL--3.0-blue.svg[AGPL-3.0,link="https://www.gnu.org/licenses/agpl-3.0"] image:https://img.shields.io/badge/philosophy-Palimpsest-purple.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
+image:[AGPL-3.0,link="https://www.gnu.org/licenses/agpl-3.0"] image:[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
 :toc:
 :sectnums:
 
